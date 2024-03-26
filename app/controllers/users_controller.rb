@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
-class UsersController < ApplicationController
+class UsersController < BaseApiController
+  def login
+    @user = User.find_by(username: params[:username])
+    if @user&.authenticate(params[:password])
+      @token = issue_token(@user)
+      response.set_cookie('sessionId', @token)
+      render 'users/login', status: :ok
+    else
+      head :unauthorized
+    end
+  end
+
   def register
     @user = User.new(user_params)
     if @user.save

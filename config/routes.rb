@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   post 'user/register', action: :register, controller: 'users', as: 'register'
-
+  post 'user/login', action: :login, controller: 'users', as: 'login'
+  
 
 
 

@@ -4,25 +4,22 @@ require "test_helper"
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @valid_params = {
-      username: 'newuser',
-      email: 'newuser@example.com',
-      password: 'securepassword'
-    }
+    @user_params = { username: 'testuser', email: 'test@testing.test', password: 'password' }
+    @user_login = { username: 'testuser', password: 'password' }
+    @user = User.create(@user_params)
+    @valid_params = { username: 'validuser', email: 'valid@user.email', password: 'password' }
 
     @invalid_params = {
       username: '', # Invalid because it's blank
       email: 'invalidemail',
       password: '' # Invalid because it's blank
     }
+  end
 
-    # Assume `existinguser` is a username already taken
-    User.create(username: 'existinguser', email: 'existing@example.com', password: 'password123')
-    @duplicate_params = {
-      username: 'existinguser',
-      email: 'user@example.com',
-      password: 'password123'
-    }
+  test "should login user successfully" do
+    post login_url, params: @user_login.to_json, headers: { 'Accept' => 'application/json', 'Content-Type' => 'application/json' }
+    assert_response :ok
+    assert_not_nil response.cookies['sessionId']
   end
 
   test "should register user successfully" do
@@ -40,9 +37,20 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should respond with teapot status when username already taken" do
+    User.create(@user_params)
     assert_no_difference('User.count') do
-      post register_url, params: @duplicate_params
+      post register_url, params: @user_params
     end
     assert_response :teapot
+  end
+
+  test "handles internal server error" do
+    # Simulating an internal error by expecting an undefined method call on nil
+    User.stubs(:find_by).raises(StandardError.new("Simulated failure")) do
+      post login_url, params: @login_params
+      assert_response :internal_server_error
+      json_response = JSON.parse(response.body)
+      assert_equal 'Internal Server Error', json_response['error']
+    end
   end
 end
