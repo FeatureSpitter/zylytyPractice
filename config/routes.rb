@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   resources :categories, only: [:index, :create]
-  resources :category_threads, path: 'thread', only: [:create, :index]
+  resources :category_threads, path: 'thread', only: [:create, :index] do
+    collection do
+      resources :posts, path: 'post', controller: 'thread_posts', only: [:create, :index]
+    end
+  end
 
   post 'user/register', action: :register, controller: 'users', as: 'register'
   post 'user/login', action: :login, controller: 'users', as: 'login'
