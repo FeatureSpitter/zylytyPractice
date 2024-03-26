@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_26_025412) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_26_130858) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -31,6 +31,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_26_025412) do
     t.index ["category_id"], name: "index_category_threads_on_category_id"
   end
 
+  create_table "thread_posts", force: :cascade do |t|
+    t.string "text"
+    t.bigint "author_id", null: false
+    t.bigint "category_thread_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_thread_posts_on_author_id"
+    t.index ["category_thread_id"], name: "index_thread_posts_on_category_thread_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "username"
     t.string "email"
@@ -43,4 +53,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_26_025412) do
 
   add_foreign_key "category_threads", "categories"
   add_foreign_key "category_threads", "users", column: "author_id"
+  add_foreign_key "thread_posts", "category_threads"
+  add_foreign_key "thread_posts", "users", column: "author_id"
 end
