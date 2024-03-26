@@ -4,7 +4,7 @@ class CategoryThreadsController < BaseApiController
   # POST /threads
   def create
     @category = Category.find_by!(name: params[:category])
-    @category_thread = @category.category_threads.create!(category_thread_params.merge(author: current_user))
+    @category_thread = @category.category_threads.create!(category_thread_params)
 
     head :created
   end
@@ -28,6 +28,7 @@ class CategoryThreadsController < BaseApiController
   private
 
   def category_thread_params
-    params.permit(:title)
+    thread_post_attributes = { text: params[:openingPost], author: current_user }
+    params.permit(:title).merge(author: current_user, thread_posts_attributes: [thread_post_attributes])
   end
 end

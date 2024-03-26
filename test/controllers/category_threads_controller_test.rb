@@ -4,6 +4,7 @@ require 'test_helper'
 
 class CategoryThreadsControllerTest < ActionDispatch::IntegrationTest
   include ::JwtHelper
+
   setup do
     @user = User.create(username: 'testuser', email: 'test@email.email', password: 'password')
     @category = Category.create(name: 'Test Category')
@@ -12,7 +13,7 @@ class CategoryThreadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should create thread" do
-    params = { category: @category.name, title: 'New Discussion' }
+    params = { category: @category.name, title: 'New Discussion', openingPost: 'This is a new discussion' }
     assert_difference('CategoryThread.count') do
       post category_threads_url, params: params, headers: @header, as: :json
     end
@@ -36,7 +37,7 @@ class CategoryThreadsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should not update category thread with invalid title" do
-    params = { category: @category.name, title: '' }
+    params = { category: @category.name, title: '', openingPost: 'This is a new discussion' }
     post category_threads_url(@category_thread), params: params, headers: @header, as: :json
     assert_response :bad_request
   end
