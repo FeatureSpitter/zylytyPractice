@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_03_26_011703) do
+ActiveRecord::Schema[7.0].define(version: 2024_03_26_025412) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,6 +19,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_26_011703) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
+  end
+
+  create_table "category_threads", force: :cascade do |t|
+    t.string "title", null: false
+    t.bigint "category_id", null: false
+    t.bigint "author_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_category_threads_on_author_id"
+    t.index ["category_id"], name: "index_category_threads_on_category_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -31,4 +41,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_03_26_011703) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "category_threads", "categories"
+  add_foreign_key "category_threads", "users", column: "author_id"
 end
