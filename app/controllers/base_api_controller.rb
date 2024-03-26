@@ -2,6 +2,8 @@
 
 class BaseApiController < ApplicationController
   rescue_from StandardError, with: :truncated_error
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+  rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
   before_action :authorize_request
 
   def logged_in?
@@ -51,6 +53,14 @@ class BaseApiController < ApplicationController
     }
     error_info[:trace] = e.backtrace if Rails.env.development?
     render json: error_info.to_json, status: :internal_server_error
+  end
+
+  def record_not_found
+    head :not_found
+  end
+
+  def record_invalid
+    head :bad_request
   end
 
   private

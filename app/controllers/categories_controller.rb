@@ -12,9 +12,8 @@ class CategoriesController < BaseApiController
     categories_params.each do |category_name|
       Category.create!(name: category_name)
     end
+
     head :created
-  rescue StandardError
-    head :bad_request
   end
 
   private
