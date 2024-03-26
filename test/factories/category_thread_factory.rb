@@ -3,8 +3,7 @@
 FactoryBot.define do
   factory :category_thread do
     title { Faker::Lorem.sentence }
-    content { Faker::Lorem.paragraph }
-    user
-    category
+    association :author, factory: :user
+    association :category
   end
 end

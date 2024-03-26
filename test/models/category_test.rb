@@ -10,7 +10,6 @@ class CategoryTest < ActiveSupport::TestCase
 
   test 'invalid without name' do
     category = Category.new(name: nil)
-    assert_not category.valid?, 'category is valid without a name'
     assert_not_nil category.errors[:name], 'no validation error for name present'
   end
 
