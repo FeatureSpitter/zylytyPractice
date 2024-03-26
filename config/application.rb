@@ -11,6 +11,14 @@ module ZylytyPracticeApp
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
 
+    #configure rack-cors
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+     origins '*'
+     resource '*', headers: :any, methods: [:get, :post]
+      end
+    end
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
