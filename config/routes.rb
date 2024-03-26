@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :categories, only: [:index, :create]
+
   post 'user/register', action: :register, controller: 'users', as: 'register'
   post 'user/login', action: :login, controller: 'users', as: 'login'
   
