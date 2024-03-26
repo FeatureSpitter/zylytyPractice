@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class UsersController < BaseApiController
+  skip_before_action :authorize_request
+
   def login
     @user = User.find_by(username: params[:username])
     if @user&.authenticate(params[:password])
