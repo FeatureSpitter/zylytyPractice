@@ -7,8 +7,8 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     @category = Category.create(name: "Valid Category")
-    @user = User.create(username: 'admin', email: 'admin@email.email', password: 'password', admin: true)
-    @session_token = generate_jwt_token(user)
+    @user = create(:user)
+    @session_token = generate_jwt_token(@user)
     @admin_header = { 'Authorization' => ENV['ADMIN_API_KEY'] }
   end
 
@@ -36,6 +36,26 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     assert_no_difference('Category.count') do
       post categories_url, params: { categories: ['Valid Category'] }, headers: @admin_header
     end
+    assert_response :bad_request
+  end
+
+  test "should delete category with valid token and non-default category" do
+    delete category_path(category: @category.name), headers: @admin_header
+    assert_response :success
+  end
+
+  test "should return unauthorized with invalid token" do
+    delete category_path(category: @category.name), headers: { 'Cookie' => "sessionId=#{@session_token}", 'Authorization' => 'invalid_token' }
+    assert_response :unauthorized
+  end
+
+  test "should return bad request for default category" do
+    delete category_path(category: "Default"), headers: @admin_header
+    assert_response :bad_request
+  end
+
+  test "should return bad request for non-existing category" do
+    delete category_path(category: "Non-Existing Category"), headers: @admin_header
     assert_response :bad_request
   end
 end

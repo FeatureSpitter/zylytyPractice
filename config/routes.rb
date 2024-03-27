@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
   resources :categories, only: [:index, :create]
+  resources :categories, only: [:destroy], param: :category, constraints: { category: /[^\/]+/ }
+  
   resources :category_threads, path: 'thread', only: [:create, :index, :destroy] do
     collection do
       resources :posts, path: 'post', controller: 'thread_posts', only: [:create, :index]
