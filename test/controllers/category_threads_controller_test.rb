@@ -10,6 +10,8 @@ class CategoryThreadsControllerTest < ActionDispatch::IntegrationTest
     @category = Category.create(name: 'Test Category')
     @session_token = generate_jwt_token(@user)
     @header = { 'Cookie' => "sessionId=#{@session_token}" }
+    @category_thread = create(:category_thread, category: @category, author: @user)
+    @admin_header = { 'Authorization' => ENV['ADMIN_API_KEY'] }
   end
 
   test "should create thread" do
@@ -62,5 +64,20 @@ class CategoryThreadsControllerTest < ActionDispatch::IntegrationTest
     assert_equal subject.category_id, first_record['category_id']
     assert_equal subject.author_id, first_record['author_id']
     assert_equal json_response.count, 10
+  end
+
+  test "should delete thread with valid token" do
+    delete category_thread_path(@category_thread.id), headers: @admin_header
+    assert_response :no_content
+  end
+
+  test "should return unauthorized with invalid token" do
+    delete category_thread_path(@category_thread.id), headers: @header.merge("Authorization" => "invalid")
+    assert_response :unauthorized
+  end
+
+  test "should return not found for non-existing thread" do
+    delete category_thread_path(@category_thread.id + 10), headers: @admin_header
+    assert_response :not_found
   end
 end

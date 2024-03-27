@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class CategoryThreadsController < BaseApiController
+  before_action :authenticate_admin, only: :destroy
+
   # POST /threads
   def create
     @category = Category.find_by!(name: params[:category])
@@ -23,6 +25,13 @@ class CategoryThreadsController < BaseApiController
     @threads = @threads.paginate(page: params[:page], per_page: params[:page_size] || 10)
 
     render json: @threads
+  end
+
+  # DELETE /threads/:id
+  def destroy
+    @category_thread = CategoryThread.find(params[:id])
+
+    head :no_content if @category_thread.destroy
   end
 
   private
