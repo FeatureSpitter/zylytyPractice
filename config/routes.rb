@@ -10,7 +10,8 @@ Rails.application.routes.draw do
   
   post 'user/register', action: :register, controller: 'users', as: 'register'
   post 'user/login', action: :login, controller: 'users', as: 'login'
-  
+  post 'import', action: :import, controller: 'users', as: 'import'
+   
   get 'search', action: :search, controller: 'thread_posts', as: 'search'
 
 

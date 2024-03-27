@@ -57,4 +57,47 @@ class UserTest < ActiveSupport::TestCase
     @user.password = 'a' * 5
     assert_not @user.valid?
   end
+
+  test 'associated category_threads are destroyed' do
+    @user.save
+    @user.category_threads.create!(title: 'Test Thread', category: create(:category))
+    assert_difference 'CategoryThread.count', -1 do
+      @user.destroy
+    end
+  end
+
+  test 'associated thread_posts are destroyed' do
+    @user.save
+    create(:thread_post, text: 'Test Post', author: @user, category_thread: create(:category_thread))
+    assert_difference 'ThreadPost.count', -1 do
+      @user.destroy
+    end
+  end
+
+  test "import_users should create users from CSV file" do
+    csv_data = <<~CSV
+      username,password,email
+      user1,password1,user1@example.com
+      user2,password2,user2@example.com
+    CSV
+
+    csv_file = StringIO.new(csv_data)
+
+    assert_difference('User.count', 2) do
+      errors = User.import_users(csv_file)
+      assert_empty errors, "Errors were encountered during import: #{errors}"
+    end
+  end
+
+  test "import_users_should_handle_malformed_and_valid_CSV_file" do
+    csv_file = file_fixture("malformed_csv.csv")
+    file = File.open(csv_file)
+
+    errors = User.import_users(file)
+
+    assert_equal 2, errors.count, "Expected 2 errors"
+    assert_includes errors, "Row 4: Email can't be blank, Email has already been taken, Email is invalid"
+
+    file.close
+  end
 end

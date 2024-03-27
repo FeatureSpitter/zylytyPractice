@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class UsersController < BaseApiController
-  skip_before_action :authorize_request
+  skip_before_action :authorize_request, except: :import
+  before_action :authenticate_admin, only: :import
 
   def login
     @user = User.find_by(username: params[:username])
@@ -20,6 +21,27 @@ class UsersController < BaseApiController
       head :created
     else
       head registration_error_status
+    end
+  end
+
+  def import
+    unless params[:file].present? && params[:file].content_type == "text/csv"
+      render json: { error: 'Bad Request: Please provide a valid CSV file' }, status: :bad_request
+      return
+    end
+
+    file = params[:file].read
+    params[:file].close
+    return head :ok if file.blank?
+
+    errors = User.import_users(file)
+
+    if errors.any?
+      render json: { errors: errors }, status: :bad_request
+    elsif errors.empty? && file.empty?
+      head :ok
+    else
+      head :created
     end
   end
 
