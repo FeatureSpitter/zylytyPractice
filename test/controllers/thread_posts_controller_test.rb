@@ -60,4 +60,23 @@ class ThreadPostsControllerTest < ActionDispatch::IntegrationTest
     get posts_url, headers: @headers, as: :json
     assert_response :bad_request
   end
+
+  test "search returns expected formatted results" do
+    category_thread_2 = create(:category_thread, author: @user)
+    create(:thread_post, text: "This one amazing day, Smith was actually a banana. What the hell? I mean common.", category_thread: category_thread_2)
+    create(:thread_post, text: "This is astonishing happened - but Smith was actually a banana. This surreal transformation is unique", category_thread: @category_thread)
+    create(:thread_post, text: "This thread is not expected to be in the results", category_thread: @category_thread)
+    get search_url(text: 'but smith was actually a banana'), headers: @headers, as: :json
+
+    assert_response :success
+
+    expected_response = {
+      "searchResults" => {
+        @category_thread.id.to_s => ["...astonishing happened - but Smith was actually a banana. This surreal transformation..."],
+        category_thread_2.id.to_s => ["...one amazing day, Smith was actually a banana. What the hell?..."]
+      }
+    }
+
+    assert_equal expected_response, JSON.parse(@response.body)
+  end
 end
