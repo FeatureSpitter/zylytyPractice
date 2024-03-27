@@ -46,10 +46,12 @@ gem 'jwt'
 # Object Mapping
 gem 'jbuilder'
 
-
 # Linter
 gem 'rubocop', require: false
 gem 'rubocop-rails', require: false
+
+# Imports
+gem 'csv'
 
 group :development, :test do
   # Environment handling
