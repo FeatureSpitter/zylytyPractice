@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Configuration variables
+DB_IMAGE="postgres"
+DB_CONTAINER_NAME="database"
+DB_PASSWORD="postgres"
+APP_IMAGE_NAME="my-app-image"
+APP_CONTAINER_NAME="my-app-container"
+APP_DOCKERFILE_PATH="./Dockerfile" # Adjust this to your Dockerfile location
+NETWORK_NAME="my-network"
+DB_PORT=5432
+
+# Create a Docker network if it doesn't already exist
+function create_network() {
+    if ! docker network ls | grep -q "$NETWORK_NAME"; then
+        echo "Creating network $NETWORK_NAME"
+        docker network create $NETWORK_NAME
+    fi
+}
+
+# Build the application Docker image
+function build_app_image() {
+    echo "Building application image $APP_IMAGE_NAME"
+    # Navigate to the directory containing the Dockerfile, if necessary
+    # cd path/to/your/app
+    docker build -t $APP_IMAGE_NAME -f $APP_DOCKERFILE_PATH .
+}
+
+# Start the database container
+function start_database() {
+    echo "Starting database container $DB_CONTAINER_NAME"
+    docker run --name $DB_CONTAINER_NAME \
+        -e POSTGRES_PASSWORD=$DB_PASSWORD \
+        --network $NETWORK_NAME \
+        -p $DB_PORT:5432 \
+        -d $DB_IMAGE
+}
+
+# Check if the database is ready
+function wait_for_database() {
+    echo "Waiting for database to become ready..."
+    until docker exec $DB_CONTAINER_NAME pg_isready -U postgres > /dev/null 2>&1; do
+        sleep 1
+        echo -n "."
+    done
+    echo "Database is ready."
+}
+
+function start_app() {
+    echo "Starting app container $APP_CONTAINER_NAME"
+    docker run --name $APP_CONTAINER_NAME \
+        --network $NETWORK_NAME \
+        --env-file .env.docker \
+        -p 3000:3000 \
+        -d $APP_IMAGE_NAME
+}
+
+function orchestrate() {
+    create_network
+    build_app_image
+    start_database
+    wait_for_database
+    start_app
+}
+
+function stop_containers() {
+    echo "Stopping containers..."
+    if ! docker stop $CONTAINER_NAME $DB_CONTAINER_NAME; then
+        echo "Failed to stop containers. They may not be running." >&2
+    fi
+}
+
+function remove_containers() {
+    echo "Removing containers..."
+    if ! docker rm $CONTAINER_NAME $DB_CONTAINER_NAME; then
+        echo "Failed to remove containers. They may not exist or may already be removed." >&2
+    fi
+}
+
+check_docker
+
+case "$1" in
+    network)
+        create_network
+        ;;
+    build)
+        build_app_image
+        ;;
+    run-db)
+        start_database
+        ;;
+    run-app)
+        start_app
+        ;;
+    setup)
+        orchestrate
+        ;;
+    stop)
+        stop_containers
+        ;;
+    remove)
+        remove_containers
+        ;;
+    *)
+        echo "Usage: $0 {network|build|run-db|run-app|setup|stop|remove}"
+        exit 1
+esac
