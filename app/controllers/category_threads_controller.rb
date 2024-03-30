@@ -14,7 +14,9 @@ class CategoryThreadsController < BaseApiController
   # GET /threads
   def index
     # Convert to array if single value
-    category_names = [params[:categories]].flatten
+    return head :bad_request if params[:categories].empty?
+
+    category_names = params[:categories].is_a?(Array) ? params[:categories] : params[:categories].split(',').map(&:strip)
     categories = ::Category.where(name: category_names)
 
     page = params[:page].to_i + 1
