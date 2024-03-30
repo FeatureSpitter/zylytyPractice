@@ -84,20 +84,18 @@ class UserTest < ActiveSupport::TestCase
     csv_file = StringIO.new(csv_data)
 
     assert_difference('User.count', 2) do
-      errors = User.import_users(csv_file)
-      assert_empty errors, "Errors were encountered during import: #{errors}"
+      User.import_users(csv_file)
     end
   end
 
   test "import_users_should_handle_malformed_and_valid_CSV_file" do
+    user_count = User.count
     csv_file = file_fixture("malformed_csv.csv")
     file = File.open(csv_file)
 
-    errors = User.import_users(file)
+    User.import_users(file)
 
-    assert_equal 2, errors.count, "Expected 2 errors"
-    assert_includes errors, "Row 4: Email can't be blank, Email has already been taken, Email is invalid"
-
+    assert_equal user_count, User.count, "User count should not change"
     file.close
   end
 end

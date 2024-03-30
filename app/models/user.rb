@@ -10,17 +10,17 @@ class User < ApplicationRecord
 
   def self.import_users(csv_file)
     parsed_csv = CSV.parse(csv_file, headers: true)
-
-    errors = []
-    parsed_csv.each_with_index do |row, index|
-        user = new(row.to_h)
-        unless user.save
-          errors << "Row #{index + 1}: #{user.errors.full_messages.join(', ')}"
-        end
-    rescue ActiveRecord::RecordInvalid => e
-        errors << "Row #{index + 1}: #{e.message}"
+    hashed_csv = parsed_csv.map(&:to_h)
+    users = []
+    hashed_csv.each do |row|
+      row = row.transform_keys { |key| key == 'e-mail' ? :email : key.to_sym }
+      users << User.new(row)
     end
 
-    errors
+    ActiveRecord::Base.transaction do
+      import_action = User.import users, validate: true
+
+      raise ActiveRecord::Rollback if import_action.failed_instances.present?
+    end
   end
 end

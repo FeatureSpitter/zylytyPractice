@@ -59,21 +59,21 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "should import users via CSV with valid API key and file" do
     user_count = User.count
-    csv_data = fixture_file_upload('valid_csv.csv', 'text/csv')
+    csv_data = "username,password,\"e-mail\"\nsimple_csv_test_99,\"12\"\"3456,78\"\"90\",simple99@test.com"
 
-    post import_path, params: { file: csv_data }, headers: @admin_header
+    post import_path, params: { 'text/plain' => csv_data }, headers: @admin_header
 
     assert_response :created
 
-    expected_count = user_count + 2
+    expected_count = user_count + 1
     assert_equal expected_count, User.count
   end
 
   test "should return unauthorized for import without valid API key" do
     user_count = User.count
-    csv_data = fixture_file_upload('valid_csv.csv', 'text/csv')
+    csv_data = "username,password,\"e-mail\"\nsimple_csv_test_99,\"12\"\"3456,78\"\"90\",simple99@test.com"
 
-    post import_path, params: { file: csv_data }, headers: { 'Token' => 'Invalid Key' }
+    post import_path, params: { "text/plain" => csv_data }, headers: { 'Token' => 'Invalid Key' }
 
     assert_response :unauthorized
     assert_equal user_count, User.count

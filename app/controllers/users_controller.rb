@@ -26,31 +26,13 @@ class UsersController < BaseApiController
   end
 
   def import
-    if params[:file].present?
-      unless params[:file].content_type == "text/csv"
-        render json: { error: 'Bad Request: Please provide a valid CSV file' }, status: :bad_request
-        return
-      end
+    return head :bad_request unless params['text/plain']
 
-      file = params[:file].read
-      params[:file].close
+    file = params['text/plain']
+    return head :ok if file.blank?
 
-    elsif params[:text].present?
-      file = params[:text]
-    else
-      render json: { error: 'Bad Request: Please provide a valid CSV file' }, status: :bad_request
-      return
-    end
-
-    errors = User.import_users(file)
-
-    if errors.any?
-      render json: { errors: errors.take[10] }, status: :bad_request
-    elsif errors.empty? && file.empty?
-      head :ok
-    else
-      head :created
-    end
+    User.import_users(file)
+    head :created
   end
 
   private
